@@ -146,6 +146,13 @@ def find_tool_range(data, curves):
     casingdata = np.hstack((RB, DEV, OD, THK))
     return toolrange, casingdata, idxODmax, idxTHKmax
 
+def readdata(data,begin,end):
+    if begin<end:
+        return data[:, begin:end + 1]
+    else:
+        d = data[:, end:begin + 1]
+        return np.fliplr(d)
+
 
 def las2npz(fname):
     lashead, data, depth, curves = readlas(fname)
@@ -160,8 +167,8 @@ def las2npz(fname):
 
     (mfcbegin, mfcend), (mtdbegin, mtdend) = toolrange
     dataTool = [
-        nullarray if mfcbegin == -1 else data[:, mfcbegin:mfcend + 1],
-        nullarray if mtdbegin == -1 else data[:, mtdbegin:mtdend + 1]]
+        nullarray if mfcbegin == -1 else readdata(data,mfcbegin,mfcend),
+        nullarray if mtdbegin == -1 else readdata(data,mtdbegin,mtdend)]
 
     # 3次样条插值到稀疏的仪器数据阵列
     # x_new = np.arange(0,W_INTERP*dataTool[0].shape[0])
@@ -171,8 +178,8 @@ def las2npz(fname):
     color = readyaml('casing3D.yml')['color']
     for i, base, gain, clr in zip((MFC, MTD), (IR, OR), (2, 4), color):
         d = dataTool[i]
-        print('spline idx, base, gain', i, base[0], gain)
-        if d.shape[0] > 0:
+        # print('spline idx, base, gain', i, base[0], gain,d.shape)
+        if d.shape[0] > 0 and d.shape[1]>0:
             x_old = np.linspace(0, W_INTERP, d.shape[1])
             # print d, OR
             if i == MTD and d.shape[0] == OR.shape[0]:
@@ -180,7 +187,7 @@ def las2npz(fname):
             d = np.vstack([InterpolatedUnivariateSpline(x_old, row)(x_new) for row in d])
             dataSpline[i] = d.astype('float32')
 
-    fname = os.path.split(fname)[-1]
+    fname = os.path.split(fname[0].replace('\\', '/'))[-1]
     fname, ext = os.path.splitext(fname)
     fname = fname + '.npz'
     np.savez(fname,
