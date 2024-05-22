@@ -11,6 +11,8 @@ from PyQt5 import QtCore, QtWidgets, QtOpenGL, QtGui
 from PyQt5.QtGui import QPixmap, QIcon, QImage, QPainter, QBrush, QColor
 from ui_casing3D import Ui_casing3D
 from las_npy import import_las, list_npz_name, readyaml, writeyaml, W_INTERP, utf8
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 MFC, MTD, DAT, DEP, CLIP, APART, BACK = 0, 1, 2, 3, 4, 5, 6
 RB, DEV, OD, THK = 0, 1, 2, 3
